@@ -437,7 +437,7 @@
         return;
       }
 
-      const margin = viewportWidth < 600 ? 26 : 48;
+      const margin = viewportWidth < 600 ? 44 : 48;
       scale = Math.min(
         (viewportWidth - margin * 2) / artworkBounds.width,
         (viewportHeight - margin * 2) / artworkBounds.height
@@ -574,11 +574,17 @@
           const screenPoint = randomScreenPoint();
           const startColor = initialColors[Math.floor(Math.random() * initialColors.length)];
           const outer = Math.max(0, Math.hypot(targetX - WIDTH * .5, targetY - HEIGHT * .9) / (WIDTH * .66));
-          const flightDelay = category === "flower"
-            ? 650 + variation * 1900 + outer * 260
-            : category === "foliage"
-              ? 4300 + variation * 1500
-              : 6200 + variation * 1100;
+          const flightDelay = compactScreen
+            ? category === "flower"
+              ? 250 + variation * 850 + outer * 140
+              : category === "foliage"
+                ? 1800 + variation * 650
+                : 3600 + variation * 700
+            : category === "flower"
+              ? 650 + variation * 1900 + outer * 260
+              : category === "foliage"
+                ? 4300 + variation * 1500
+                : 6200 + variation * 1100;
 
           mappedParticles.push({
             seed,
@@ -597,7 +603,9 @@
             foliageGroup,
             coverage: Math.min(1, coverage / 3.1),
             flightDelay,
-            flightDuration: 2200 + variation * 650,
+            flightDuration: compactScreen
+              ? 1450 + variation * 500
+              : 2200 + variation * 650,
             messageIndex: -1,
             bitIndex: -1,
             letterParticle: false
@@ -960,7 +968,8 @@
     }
 
     function updateMode(time) {
-      if (mode === "forming" && time - experienceStarted >= FORM_DURATION) {
+      const formationDuration = viewportWidth < 600 ? 6500 : FORM_DURATION;
+      if (mode === "forming" && time - experienceStarted >= formationDuration) {
         mode = "formed";
         modeStarted = time;
         experience.classList.add("formed");
