@@ -585,11 +585,14 @@
     function makeMessagePoints(text) {
       artContext.font = `34px ${messageFont}`;
       const maxWidth = Math.min(WIDTH * .84, viewportWidth / scale * .9);
+      const extraWordSpace = viewportWidth < 600 ? 18 : 8;
+      const measureLine = (value) => artContext.measureText(value).width
+        + (value.split(" ").length - 1) * extraWordSpace;
       const lines = [];
       let line = "";
       for (const word of text.split(" ")) {
         const candidate = line ? `${line} ${word}` : word;
-        if (line && artContext.measureText(candidate).width > maxWidth) {
+        if (line && measureLine(candidate) > maxWidth) {
           lines.push(line);
           line = word;
         } else {
@@ -600,7 +603,7 @@
 
       const lineHeight = 43;
       const points = lines.flatMap((lineText, lineIndex) => {
-        const lineWidth = artContext.measureText(lineText).width;
+        const lineWidth = measureLine(lineText);
         let x = (WIDTH - lineWidth) / 2;
         const y = HEIGHT / 2 + (lineIndex - (lines.length - 1) / 2) * lineHeight;
         return [...lineText].flatMap((character) => {
@@ -608,7 +611,7 @@
           const point = character === " "
             ? []
             : [{ x: x + characterWidth / 2, y, character, byteIndex: -1 }];
-          x += characterWidth;
+          x += characterWidth + (character === " " ? extraWordSpace : 0);
           return point;
         });
       });
