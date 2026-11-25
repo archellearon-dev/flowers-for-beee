@@ -36,22 +36,19 @@
   const babyBreathClusters = [
     [174, 402, 1.2], [224, 324, 1], [300, 385, 1.05], [351, 285, .82],
     [571, 371, 1.1], [652, 326, .95], [713, 392, 1.2], [760, 474, 1.05],
-    [272, 466, .95], [623, 459, 1], [465, 345, .92], [493, 409, 1],
-    [184, 276, .88], [746, 273, .9], [378, 430, 1.05], [540, 433, 1.08],
-    [335, 475, .92], [585, 478, 1], [450, 455, .92]
+    [272, 466, .95], [623, 459, 1], [184, 276, .88], [746, 273, .9],
+    [378, 430, 1.05], [540, 433, 1.08], [335, 475, .92], [585, 478, 1]
   ];
   const babyBreathOffsets = [[0, 0], [-16, -18], [12, -23], [-30, -37], [21, -42], [-3, -49]];
   const flowerSways = [
     { x: 292, y: 201, radius: 116, speed: .00145, phase: .4, amount: 21 },
     { x: 585, y: 184, radius: 104, speed: .00122, phase: 2.2, amount: 19 },
-    { x: 445, y: 270, radius: 73, speed: .00165, phase: 4.1, amount: 14 },
     { x: 465, y: 225, radius: 98, speed: .00114, phase: 1.3, amount: 19 },
     { x: 688, y: 282, radius: 87, speed: .00138, phase: 3.4, amount: 18 },
     { x: 340, y: 311, radius: 85, speed: .00152, phase: 5.2, amount: 17 },
     { x: 549, y: 320, radius: 78, speed: .00128, phase: 2.7, amount: 16 },
     { x: 230, y: 317, radius: 68, speed: .00146, phase: 4.7, amount: 15 },
-    { x: 681, y: 367, radius: 64, speed: .00118, phase: 1.9, amount: 15 },
-    { x: 414, y: 358, radius: 61, speed: .0016, phase: .9, amount: 14 }
+    { x: 681, y: 367, radius: 64, speed: .00118, phase: 1.9, amount: 15 }
   ];
   const foliageSways = [
     { x: 220, y: 330, speed: .0008, phase: .4, amount: 9 },
@@ -363,18 +360,18 @@
     drawEucalyptus(ctx);
 
     [
-      [376, 234, 597, 638, -34],
-      [518, 225, 470, 638, 38],
-      [286, 263, 421, 638, -9],
-      [615, 278, 485, 638, 28],
-      [427, 322, 448, 638, -27],
-      [530, 330, 458, 638, 11],
-      [347, 331, 427, 638, -22]
+      [292, 230, 420, 638, -34],
+      [585, 216, 500, 638, 38],
+      [465, 260, 465, 638, -9],
+      [688, 316, 550, 638, 28],
+      [340, 345, 385, 638, -22],
+      [549, 354, 500, 638, 11],
+      [230, 350, 325, 638, -27],
+      [681, 400, 575, 638, 28]
     ].forEach(([x, y, endX, endY, bend]) => drawStem(ctx, x, y, endX, endY, bend));
 
     drawLily(ctx, 292, 201, .89, "lily");
     drawLily(ctx, 585, 184, .79, "lily");
-    drawLily(ctx, 445, 270, .54, "blush");
 
     drawAnthurium(ctx, 465, 225, .86, "crimson", -.1);
     drawAnthurium(ctx, 688, 282, .69, "crimson", .19);
@@ -383,7 +380,6 @@
 
     drawOrchid(ctx, 230, 317, .86, -.1);
     drawOrchid(ctx, 681, 367, .8, .14);
-    drawOrchid(ctx, 414, 358, .68, -.12);
 
     drawEucalyptusForeground(ctx);
     drawRibbon(ctx);
@@ -498,8 +494,9 @@
     function buildParticleMap() {
       drawBouquet(artContext);
       const image = artContext.getImageData(0, 0, WIDTH, HEIGHT);
-      const cellWidth = 4.15 / scale;
-      const cellHeight = 6.35 / scale;
+      const compactScreen = viewportWidth < 600;
+      const cellWidth = (compactScreen ? 4.9 : 4.7) / scale;
+      const cellHeight = (compactScreen ? 7.4 : 7.1) / scale;
       const columns = Math.ceil(WIDTH / cellWidth);
       const rows = Math.ceil(HEIGHT / cellHeight);
       const mappedParticles = [];
@@ -528,9 +525,9 @@
             }
           }
           if (coverage < .55) continue;
-          red = Math.round(red / coverage);
-          green = Math.round(green / coverage);
-          blue = Math.round(blue / coverage);
+          red = Math.round(image.data[pixel] * .68 + red / coverage * .32);
+          green = Math.round(image.data[pixel + 1] * .68 + green / coverage * .32);
+          blue = Math.round(image.data[pixel + 2] * .68 + blue / coverage * .32);
 
           const targetX = column * cellWidth + cellWidth / 2;
           const targetY = row * cellHeight + cellHeight / 2;
@@ -561,7 +558,7 @@
             initialBit: Math.random() < .5 ? "0" : "1",
             bit: seed & 1 ? "1" : "0",
             phase: Math.random() * Math.PI * 2,
-            size: 6.3 + Math.random() * 1.8,
+            size: compactScreen ? 5.5 + Math.random() * .8 : 6 + Math.random() * 1.1,
             category,
             flowerGroup,
             foliageGroup,
