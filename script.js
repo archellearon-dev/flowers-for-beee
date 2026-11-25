@@ -428,6 +428,7 @@
     const initialColors = [[239, 157, 202], [194, 118, 169], [244, 205, 221], [157, 78, 105], [155, 184, 145]];
     const messageFont = 'Georgia, "Times New Roman", serif';
     let currentFont = "";
+    let messageFontSize = 34;
     let driftingBits = [];
     let lastDrift = 0;
 
@@ -583,9 +584,13 @@
     }
 
     function makeMessagePoints(text) {
-      artContext.font = `34px ${messageFont}`;
-      const maxWidth = Math.min(WIDTH * .84, viewportWidth / scale * .9);
-      const extraWordSpace = viewportWidth < 600 ? 18 : 8;
+      const narrowScreen = viewportWidth < 600;
+      messageFontSize = narrowScreen ? 44 : 34;
+      artContext.font = `${messageFontSize}px ${messageFont}`;
+      const maxWidth = narrowScreen
+        ? Math.min(WIDTH * .66, viewportWidth / scale * .62)
+        : Math.min(WIDTH * .84, viewportWidth / scale * .9);
+      const extraWordSpace = narrowScreen ? 28 : 8;
       const measureLine = (value) => artContext.measureText(value).width
         + (value.split(" ").length - 1) * extraWordSpace;
       const lines = [];
@@ -601,7 +606,7 @@
       }
       if (line) lines.push(line);
 
-      const lineHeight = 43;
+      const lineHeight = messageFontSize * (narrowScreen ? 1.42 : 1.26);
       const points = lines.flatMap((lineText, lineIndex) => {
         const lineWidth = measureLine(lineText);
         let x = (WIDTH - lineWidth) / 2;
@@ -809,7 +814,7 @@
             218,
             233,
             characterProgress,
-            34,
+            messageFontSize,
             characterProgress > .72 ? 8 : 3,
             messageFont
           );
@@ -896,7 +901,7 @@
           218,
           233,
           1 - bitProgress,
-          34 - bitProgress * 27,
+          messageFontSize - bitProgress * (messageFontSize - 27),
           0,
           messageFont
         );
@@ -947,7 +952,7 @@
           if (mode === "decoded") {
             if (particle.letterParticle) {
               drawGlyph(particle.messagePoint.character, particle.messagePoint.x, particle.messagePoint.y,
-                255, 218, 233, 1, 34, 5, messageFont);
+                255, 218, 233, 1, messageFontSize, 5, messageFont);
             }
           } else {
             drawDecodingParticle(particle, time, elapsed);
