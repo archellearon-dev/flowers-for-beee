@@ -427,6 +427,24 @@
     let messageFontSize = 34;
     let driftingBits = [];
     let lastDrift = 0;
+    let artworkBounds = null;
+
+    function fitArtwork() {
+      if (!artworkBounds) {
+        scale = Math.min(viewportWidth / WIDTH, viewportHeight * .9 / HEIGHT);
+        offsetX = (viewportWidth - WIDTH * scale) / 2;
+        offsetY = (viewportHeight - HEIGHT * scale) / 2;
+        return;
+      }
+
+      const margin = viewportWidth < 600 ? 26 : 48;
+      scale = Math.min(
+        (viewportWidth - margin * 2) / artworkBounds.width,
+        (viewportHeight - margin * 2) / artworkBounds.height
+      );
+      offsetX = (viewportWidth - artworkBounds.width * scale) / 2 - artworkBounds.left * scale;
+      offsetY = (viewportHeight - artworkBounds.height * scale) / 2 - artworkBounds.top * scale;
+    }
 
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
@@ -434,9 +452,7 @@
       viewportWidth = rect.width;
       viewportHeight = rect.height;
       pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-      scale = Math.min(viewportWidth / WIDTH, viewportHeight * .9 / HEIGHT);
-      offsetX = (viewportWidth - WIDTH * scale) / 2;
-      offsetY = (viewportHeight - HEIGHT * scale) / 2;
+      fitArtwork();
       const targetWidth = Math.round(viewportWidth * pixelRatio);
       const targetHeight = Math.round(viewportHeight * pixelRatio);
       if (canvas.width !== targetWidth) canvas.width = targetWidth;
@@ -494,6 +510,23 @@
     function buildParticleMap() {
       drawBouquet(artContext);
       const image = artContext.getImageData(0, 0, WIDTH, HEIGHT);
+      let left = WIDTH;
+      let top = HEIGHT;
+      let right = -1;
+      let bottom = -1;
+      for (let y = 0; y < HEIGHT; y += 1) {
+        for (let x = 0; x < WIDTH; x += 1) {
+          if (image.data[(y * WIDTH + x) * 4 + 3] < 16) continue;
+          left = Math.min(left, x);
+          top = Math.min(top, y);
+          right = Math.max(right, x);
+          bottom = Math.max(bottom, y);
+        }
+      }
+      if (right < left || bottom < top) throw new Error("Bouquet artwork has no visible pixels");
+      artworkBounds = { left, top, width: right - left + 1, height: bottom - top + 1 };
+      fitArtwork();
+
       const compactScreen = viewportWidth < 600;
       const cellWidth = (compactScreen ? 4.9 : 4.7) / scale;
       const cellHeight = (compactScreen ? 7.4 : 7.1) / scale;
@@ -603,10 +636,12 @@
       if (line) lines.push(line);
 
       const lineHeight = messageFontSize * (narrowScreen ? 1.42 : 1.26) / scale;
+      const centerX = (viewportWidth / 2 - offsetX) / scale;
+      const centerY = (viewportHeight / 2 - offsetY) / scale;
       const points = lines.flatMap((lineText, lineIndex) => {
         const lineWidth = measureLine(lineText);
-        let x = (WIDTH - lineWidth) / 2;
-        const y = HEIGHT / 2 + (lineIndex - (lines.length - 1) / 2) * lineHeight;
+        let x = centerX - lineWidth / 2;
+        const y = centerY + (lineIndex - (lines.length - 1) / 2) * lineHeight;
         return [...lineText].flatMap((character) => {
           const characterWidth = artContext.measureText(character).width;
           const point = character === " "
@@ -623,6 +658,24 @@
         searchFrom = point.byteIndex + 1;
       });
       return points;
+    }
+
+    function refreshMessageLayout() {
+      const nextPoints = makeMessagePoints(decodedText);
+      if (mode === "decoded") {
+        particles.forEach((particle) => {
+          if (particle.letterParticle) {
+            particle.messagePoint = nextPoints[particle.messageIndex];
+            particle.decodeX = particle.messagePoint.x + (particle.bitIndex % 4 - 1.5) * 2.4;
+            particle.decodeY = particle.messagePoint.y + (Math.floor(particle.bitIndex / 4) - .5) * 3.6;
+          } else if (particle.messageIndex < 0 && particle.messagePoint) {
+            particle.messagePoint = nextPoints[(particle.seed >>> 4) % nextPoints.length];
+            particle.decodeX = particle.messagePoint.x + (((particle.seed >>> 8) % 33) - 16) * 2.2;
+            particle.decodeY = particle.messagePoint.y + (((particle.seed >>> 13) % 17) - 8) * 2.2;
+          }
+        });
+      }
+      messagePoints = nextPoints;
     }
 
     function ease(value) {
@@ -1008,7 +1061,9 @@
     decodeButton.addEventListener("click", () => beginDecode(performance.now()));
     returnButton.addEventListener("click", () => beginReturn(performance.now()));
     window.addEventListener("resize", () => {
-      if (resizeCanvas()) drawFrame(performance.now());
+      if (!resizeCanvas()) return;
+      if (mode !== "decoding" && mode !== "returning") refreshMessageLayout();
+      drawFrame(performance.now());
     });
     reduceMotion.addEventListener?.("change", () => {
       if (reduceMotion.matches) {
@@ -1032,8 +1087,8 @@
     encodedBinary = encodeMessage(message);
     decodedText = decodeMessage(encodedBinary);
     resizeCanvas();
-    messagePoints = makeMessagePoints(decodedText);
     buildParticleMap();
+    messagePoints = makeMessagePoints(decodedText);
     if (reduceMotion.matches) {
       mode = "formed";
       experience.classList.add("formed");
