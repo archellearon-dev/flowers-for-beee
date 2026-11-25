@@ -8,7 +8,7 @@ The public site will be available at:
 
 <https://archellearon-dev.github.io/flowers-for-beee/>
 
-GitHub Pages may take a few minutes to publish after it is enabled.
+To publish it, open the repository's **Settings → Pages**. Under **Build and deployment**, choose **Deploy from a branch**, select `main` and `/(root)`, then save. GitHub Pages may take a few minutes to publish after it is enabled.
 
 ## Run locally
 
