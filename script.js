@@ -438,8 +438,7 @@
       viewportWidth = rect.width;
       viewportHeight = rect.height;
       pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-      const portraitZoom = viewportHeight / viewportWidth > 1.2 ? 1.25 : 1;
-      scale = Math.min(viewportWidth * portraitZoom / WIDTH, viewportHeight * .9 / HEIGHT);
+      scale = Math.min(viewportWidth / WIDTH, viewportHeight * .9 / HEIGHT);
       offsetX = (viewportWidth - WIDTH * scale) / 2;
       offsetY = (viewportHeight - HEIGHT * scale) / 2;
       const targetWidth = Math.round(viewportWidth * pixelRatio);
@@ -585,8 +584,8 @@
 
     function makeMessagePoints(text) {
       const narrowScreen = viewportWidth < 600;
-      messageFontSize = narrowScreen ? 44 : 34;
-      artContext.font = `${messageFontSize}px ${messageFont}`;
+      messageFontSize = narrowScreen ? 22 : 34;
+      artContext.font = `${messageFontSize / scale}px ${messageFont}`;
       const maxWidth = narrowScreen
         ? Math.min(WIDTH * .66, viewportWidth / scale * .62)
         : Math.min(WIDTH * .84, viewportWidth / scale * .9);
@@ -606,7 +605,7 @@
       }
       if (line) lines.push(line);
 
-      const lineHeight = messageFontSize * (narrowScreen ? 1.42 : 1.26);
+      const lineHeight = messageFontSize * (narrowScreen ? 1.42 : 1.26) / scale;
       const points = lines.flatMap((lineText, lineIndex) => {
         const lineWidth = measureLine(lineText);
         let x = (WIDTH - lineWidth) / 2;
