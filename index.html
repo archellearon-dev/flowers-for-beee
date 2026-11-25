@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#110a16">
+    <meta name="description" content="Thousands of binary fragments gather into a living bouquet and reveal a hidden love letter.">
+    <title>A little love letter, in binary</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="experience" id="experience">
+      <div class="ambient" aria-hidden="true"></div>
+      <canvas
+        id="bouquet"
+        role="img"
+        aria-label="Thousands of glowing binary characters drift together and form pink lilies, anthuriums, orchids, baby's breath, and eucalyptus."
+      >A living bouquet, formed from binary characters.</canvas>
+
+      <header class="wordmark" aria-label="Petal and Verse">
+        <span class="wordmark-icon" aria-hidden="true">✳</span>
+        <span>petal <i>&amp;</i> verse</span>
+      </header>
+
+      <p class="stage-note" id="stage-note">little bits of something beautiful</p>
+
+      <nav class="actions" aria-label="Bouquet controls">
+        <button class="action-button" id="decode-button" type="button" hidden>decode <span aria-hidden="true">↗</span></button>
+        <button class="action-button return-button" id="return-button" type="button" hidden><span aria-hidden="true">↶</span> return to the flowers</button>
+      </nav>
+
+      <p class="visually-hidden" id="announcement" aria-live="polite"></p>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
